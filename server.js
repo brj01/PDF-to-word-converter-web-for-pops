@@ -39,24 +39,20 @@ async function pdfPageToPng(inputPath, pageNumber, outputPath) {
     pdftoppm.on('close', (code) => code === 0 ? resolve() : reject(new Error(`pdftoppm failed with code ${code}`)));
     pdftoppm.on('error', reject);
   });
-}async function ocrImage(imagePath) {
+}
+
+async function ocrImage(imagePath) {
   console.log(`Starting OCR for ${imagePath}`);
-  const worker = await createWorker({
-    // You can keep logger here if you want:
-    // logger: m => console.log(m)
-  });
-  
+  const worker = await createWorker();
+
   try {
-    // Pass languages as an array, NOT a string
-    await worker.initialize(['eng', 'ara']);
-    
+    await worker.initialize('eng');
     const { data: { text } } = await worker.recognize(imagePath);
     return text;
   } finally {
     await worker.terminate();
   }
 }
-
 
 // Word document creation
 function createDocxFromText(text) {
@@ -65,9 +61,9 @@ function createDocxFromText(text) {
     .filter(p => p.trim())
     .map(line => new Paragraph({
       text: line.trim(),
-      alignment: /[\u0600-\u06FF]/.test(line) ? AlignmentType.RIGHT : AlignmentType.LEFT,
+      alignment: AlignmentType.LEFT,
     }));
-  
+
   doc.addSection({ children: paragraphs });
   return doc;
 }
