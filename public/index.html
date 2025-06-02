@@ -50,6 +50,8 @@
     
     .file-input {
       margin: 1.5rem 0;
+      display: block;
+      width: 100%;
     }
     
     .btn {
@@ -61,6 +63,7 @@
       cursor: pointer;
       font-size: 1rem;
       transition: background-color 0.3s;
+      display: inline-block;
     }
     
     .btn:hover {
@@ -102,6 +105,7 @@
       margin-top: 1rem;
       padding: 0.75rem;
       border-radius: 4px;
+      display: none;
     }
     
     .status.success {
@@ -119,6 +123,7 @@
       padding: 1rem;
       background-color: var(--dark-color);
       color: white;
+      margin-top: auto;
     }
   </style>
 </head>
@@ -144,7 +149,7 @@
         <div id="progressText">Processing...</div>
       </div>
       
-      <div id="statusMessage" class="status" style="display: none;"></div>
+      <div id="statusMessage" class="status"></div>
       
       <div id="downloadLink" class="download-link">
         <a href="#" id="downloadAnchor" class="btn">Download Word Document</a>
@@ -187,14 +192,13 @@
           const formData = new FormData();
           formData.append('pdf', file);
   
-          // Update progress (simulated)
+          // Better progress simulation
+          let progress = 0;
           const progressInterval = setInterval(() => {
-            const currentWidth = parseInt(progressBar.style.width) || 0;
-            if (currentWidth < 90) {
-              progressBar.style.width = (currentWidth + 10) + '%';
-              progressText.textContent = `Processing... ${currentWidth + 10}%`;
-            }
-          }, 1000);
+            progress = Math.min(progress + 2, 90);
+            progressBar.style.width = `${progress}%`;
+            progressText.textContent = `Processing... ${progress}%`;
+          }, 1500);
   
           // Use full backend URL
           const response = await fetch('http://localhost:3000/convert', {
@@ -205,8 +209,8 @@
           clearInterval(progressInterval);
   
           if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.error || 'Conversion failed');
+            const errorData = await response.json();
+            throw new Error(errorData.details || 'Conversion failed');
           }
   
           progressBar.style.width = '100%';
@@ -225,6 +229,7 @@
           console.error('Conversion error:', error);
           showStatus(`Error: ${error.message}`, 'error');
           progressText.textContent = 'Conversion failed';
+          progressBar.style.backgroundColor = '#dc3545';
         } finally {
           convertBtn.disabled = false;
         }
